@@ -11,48 +11,113 @@
 <body>
 
     <div class="container">
-        <h1>Problem Solver</h1>
+        <h1>Advanced Calculator</h1>
 
-        <div class="input-group">
-            <input type="number" id="v1" placeholder="First Number">
-            <input type="number" id="v2" placeholder="Second Number">
+        <div class="display-container">
+            <input type="text" id="display" readonly placeholder="0">
         </div>
 
-        <div class="button-grid">
-            <button onclick="doMath('+')">+</button>
-            <button onclick="doMath('-')">-</button>
-            <button onclick="doMath('*')">×</button>
-            <button onclick="doMath('/')">÷</button>
+        <div class="calculator-grid">
+            <button class="btn-clear" onclick="clearDisplay()">AC</button>
+            <button class="btn-delete" onclick="deleteLast()">DEL</button>
+            <button class="btn-operator" onclick="appendOperator('/')">÷</button>
+            <button class="btn-operator" onclick="appendOperator('*')">×</button>
+
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="btn-operator" onclick="appendOperator('-')">-</button>
+
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="btn-operator" onclick="appendOperator('+')">+</button>
+
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button class="btn-equals" onclick="calculate()">=</button>
+
+            <button class="btn-zero" onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('.')">.</button>
         </div>
-
-        <button class="clear-btn" onclick="reset()">Clear All</button>
-
-        <h2 id="out">Final Answer: <span>0</span></h2>
     </div>
 
     <script>
-        function doMath(symbol) {
-            let first = parseFloat(document.getElementById("v1").value) || 0;
-            let second = parseFloat(document.getElementById("v2").value) || 0;
-            let ans;
+        const display = document.getElementById('display');
+        let currentInput = '';
+        let operator = null;
+        let previousInput = '';
+        let shouldResetDisplay = false;
 
-            switch (symbol) {
-                case '+': ans = first + second; break;
-                case '-': ans = first - second; break;
-                case '*': ans = first * second; break;
-                case '/':
-                    ans = second !== 0 ? (first / second).toFixed(2) : "Error (Div by 0)";
-                    break;
-                default: ans = "Unknown";
+        function appendNumber(number) {
+            if (number === '.' && currentInput.includes('.')) return;
+            if (shouldResetDisplay) {
+                currentInput = number;
+                shouldResetDisplay = false;
+            } else {
+                currentInput = currentInput === '0' ? number : currentInput + number;
             }
-
-            document.getElementById("out").innerHTML = `Final Answer: <span>${ans}</span>`;
+            updateDisplay();
         }
 
-        function reset() {
-            document.getElementById("v1").value = "";
-            document.getElementById("v2").value = "";
-            document.getElementById("out").innerHTML = "Final Answer: <span>0</span>";
+        function appendOperator(op) {
+            if (currentInput === '' && previousInput === '') return;
+            if (previousInput !== '' && currentInput !== '') {
+                calculate();
+            }
+            operator = op;
+            previousInput = currentInput || previousInput;
+            shouldResetDisplay = true;
+        }
+
+        function calculate() {
+            if (operator === null || shouldResetDisplay || currentInput === '') return;
+
+            let result;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operator) {
+                case '+': result = prev + current; break;
+                case '-': result = prev - current; break;
+                case '*': result = prev * current; break;
+                case '/':
+                    if (current === 0) {
+                        result = "Error";
+                    } else {
+                        result = prev / current;
+                    }
+                    break;
+                default: return;
+            }
+
+            currentInput = result.toString();
+            operator = null;
+            previousInput = '';
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = '';
+            previousInput = '';
+            operator = null;
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (shouldResetDisplay) return;
+            currentInput = currentInput.slice(0, -1);
+            if (currentInput === '') currentInput = '0';
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            display.value = currentInput || '0';
         }
     </script>
 
